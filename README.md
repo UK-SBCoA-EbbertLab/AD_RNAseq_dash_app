@@ -5,24 +5,22 @@ This project is a web application built using Dash, a Python framework for build
 
 ## Project Structure
 ```
-my_dash_app/
+AD_RNAseq_dash_app/
 │
-├── venv/                  # Virtual environment (not tracked by git)
-├── app/
-│   ├── __init__.py
-│   ├── main.py            # Main application file
-│   ├── layouts/           # Layout components
-│   │   └── __init__.py
-│   ├── callbacks/         # Callback functions
-│   │   └── __init__.py
-│   ├── data/              # Data processing and management
-│   │   └── __init__.py
-│   └── assets/            # Static assets (CSS, images, etc.)
-├── tests/                 # Unit and integration tests
-│   └── __init__.py
-├── config.py              # Configuration settings
-├── requirements.txt       # Project dependencies
-└── README.md              # Project documentation
+├── .vscode/              # VS Code specific settings
+│   └── launch.json       # Starts virtual environment for VScode workspace
+├── app.py                # Main application file
+├── data/
+│   ├── toptable_2023     # Directory containing toptable data files
+│   └── annotations.csv   # Gene annotations file
+├── assets/
+│   ├── favicon.ico
+│   └── style.css         # Custom styles for the app
+├── .gitignore
+├── README.md             # This file
+├── run.py                # Script to run the application
+├── requirements.txt      # Project dependencies
+└── Dockerfile            # Docker configuration for deployment
 ```
 
 ## Setup and Installation
