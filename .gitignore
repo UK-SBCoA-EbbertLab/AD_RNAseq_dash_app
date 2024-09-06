@@ -80,4 +80,4 @@ env.bak/
 venv.bak/
 
 # Data
-data/
+raw_data/
