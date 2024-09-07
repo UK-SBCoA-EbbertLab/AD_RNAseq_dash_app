@@ -21,6 +21,7 @@ data = {
 }
 
 sod1_annotation = pd.DataFrame(data)
+sod1_annotation.dropna(inplace=True)
 
 # Define a mapping from transcript_biotype to colors
 biotype_colors = {
