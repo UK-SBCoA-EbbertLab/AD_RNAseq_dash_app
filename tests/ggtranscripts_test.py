@@ -6,7 +6,7 @@ from plotly.subplots import make_subplots
 import sys
 import os
 sys.path.append("C:/Users/local_bag222/Desktop/dash_apps/AD_RNAseq_dash_app")
-from plotly_ggtranscript import geom_range, geom_intron, to_intron, set_axis
+from plotly_ggtranscript import geom_range, geom_intron, to_intron, shorten_gaps, set_axis
 
 # Create the sod1_annotation DataFrame
 data = {
@@ -34,14 +34,21 @@ biotype_colors = {
 sod1_exons = sod1_annotation[sod1_annotation['type'] == 'exon']
 
 # Use .loc to avoid SettingWithCopyWarning
-sod1_exons.loc[:, 'fillcolor'] = sod1_exons['transcript_biotype'].map(biotype_colors)
+sod1_exons = sod1_exons.copy()  # Make an explicit copy
+sod1_exons['fillcolor'] = sod1_exons['transcript_biotype'].map(biotype_colors)
+
+## Rescale SOD exons
+sod1_rescaled = shorten_gaps(exons=sod1_exons, introns=to_intron(sod1_exons, "transcript_name"), group_var = "transcript_name")
+
+print(sod1_rescaled.head())
+
 
 # Create the plot
 fig = go.Figure()
 
 # Add exons using geom_range, passing the fillcolor directly
 exon_traces = geom_range(
-    data=sod1_exons,
+    data=,
     x_start='start',
     x_end='end',
     y='transcript_name',
@@ -51,9 +58,9 @@ for trace in exon_traces:
     fig.add_shape(trace)  # Add shapes to the figure using add_shape
 
 # Create introns and add them using geom_intron
-sod1_introns = to_intron(sod1_exons, group_var="transcript_name")
+#sod1_introns = to_intron(sod1_exons, group_var="transcript_name")
 intron_traces = geom_intron(
-    data=sod1_introns,
+    data=sod1_rescaled.loc[sod1_rescaled["type"] == "intron"],
     x_start='start',
     x_end='end',
     y='transcript_name',
@@ -71,7 +78,7 @@ for trace in intron_traces:
         fig.add_trace(trace)
 
 # Call the new function to set the genomic axis range
-fig = set_axis(fig, sod1_exons, sod1_introns)
+fig = set_axis(fig, sod1_rescaled.loc[sod1_rescaled["type"] == "exon"], sod1_rescaled.loc[sod1_rescaled["type"] == "intron"])
 
 # Update layout and show the plot
 fig.update_layout(
