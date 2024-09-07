@@ -22,9 +22,6 @@ data = {
 
 sod1_annotation = pd.DataFrame(data)
 
-print("First few rows of sod1_annotation:")
-print(sod1_annotation.head())
-
 # Define a mapping from transcript_biotype to colors
 biotype_colors = {
     'protein_coding': 'blue',
@@ -35,8 +32,8 @@ biotype_colors = {
 # Extract exons
 sod1_exons = sod1_annotation[sod1_annotation['type'] == 'exon']
 
-# Map biotypes to colors
-sod1_exons['fillcolor'] = sod1_exons['transcript_biotype'].map(biotype_colors)
+# Use .loc to avoid SettingWithCopyWarning
+sod1_exons.loc[:, 'fillcolor'] = sod1_exons['transcript_biotype'].map(biotype_colors)
 
 # Create the plot
 fig = go.Figure()
@@ -50,7 +47,7 @@ exon_traces = geom_range(
     fill=sod1_exons['fillcolor']  # Pass the color-mapped column
 )
 for trace in exon_traces:
-    fig.add_trace(trace)
+    fig.add_shape(trace)  # Add shapes to the figure using add_shape
 
 # Create introns and add them using geom_intron
 sod1_introns = to_intron(sod1_exons, group_var="transcript_name")
@@ -61,8 +58,13 @@ intron_traces = geom_intron(
     y='transcript_name',
     strand='strand'
 )
+
+# Add intron shapes and arrows
 for trace in intron_traces:
-    fig.add_trace(trace)
+    if isinstance(trace, dict):  # Add shapes
+        fig.add_shape(trace)
+    else:  # Add scatter traces
+        fig.add_trace(trace)
 
 # Update layout
 fig.update_layout(
@@ -71,7 +73,7 @@ fig.update_layout(
     yaxis_title="Transcript",
     height=400,
     width=800,
-    showlegend=True
+    showlegend=False
 )
 
 # Show the plot
