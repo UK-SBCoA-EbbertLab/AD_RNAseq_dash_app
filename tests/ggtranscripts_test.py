@@ -6,7 +6,7 @@ from plotly.subplots import make_subplots
 import sys
 import os
 sys.path.append("C:/Users/local_bag222/Desktop/dash_apps/AD_RNAseq_dash_app")
-from plotly_ggtranscript import geom_range, geom_intron, to_intron
+from plotly_ggtranscript import geom_range, geom_intron, to_intron, set_axis
 
 # Create the sod1_annotation DataFrame
 data = {
@@ -60,14 +60,20 @@ intron_traces = geom_intron(
     strand='strand'
 )
 
-# Add intron shapes and arrows
+# Add exons and introns as before
+for trace in exon_traces:
+    fig.add_shape(trace)
+
 for trace in intron_traces:
-    if isinstance(trace, dict):  # Add shapes
+    if isinstance(trace, dict):
         fig.add_shape(trace)
-    else:  # Add scatter traces
+    else:
         fig.add_trace(trace)
 
-# Update layout
+# Call the new function to set the genomic axis range
+fig = set_axis(fig, sod1_exons, sod1_introns)
+
+# Update layout and show the plot
 fig.update_layout(
     title="SOD1 Transcript Structure",
     xaxis_title="Genomic Position",
@@ -77,10 +83,6 @@ fig.update_layout(
     showlegend=False
 )
 
-# Show the plot
+# Show or save the plot
 fig.show()
-
-# If you want to save the plot as an HTML file
 fig.write_html("sod1_transcript_structure.html")
-
-print("Plot has been generated and saved as 'sod1_transcript_structure.html'")
