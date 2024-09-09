@@ -182,67 +182,52 @@ def _get_shortened_gaps(df: pd.DataFrame, gaps: pd.DataFrame, gap_map: dict,
                         group_var: Union[str, List[str]], target_gap_width: int) -> pd.DataFrame:
     """
     Shorten the gaps between exons and introns according to a target gap width.
-
-    Parameters:
-    -----------
-    df : pd.DataFrame
-        DataFrame containing exons or introns.
-    gaps : pd.DataFrame
-        DataFrame containing gaps.
-    gap_map : dict
-        Dictionary mapping gaps to introns/exons ('equal' or 'pure_within').
-    group_var : str or List[str]
-        Column(s) used to group transcripts.
-    target_gap_width : int
-        Maximum allowed width for gaps.
-
-    Returns:
-    --------
-    pd.DataFrame
-        DataFrame with shortened gaps.
     """
-    df = df.copy()  # Copy DataFrame to avoid modifying the original
+    df = df.copy()
     df['width'] = df['end'] - df['start'] + 1  # Calculate the width of each intron/exon
 
     df['shorten_type'] = 'none'  # Initialize a column to track the type of shortening
 
-    # If 'df_index' is missing from gap_map, return the original DataFrame (no shortening)
     if 'df_index' not in gap_map['equal'].columns or 'df_index' not in gap_map['pure_within'].columns:
-        return df
+        return df  # If gap mapping failed, return the original DataFrame
 
-    # Mark rows where gaps should be shortened (equal match or within match)
+    # Mark rows for shortening (both equal and pure_within matches)
     df.loc[df.index.isin(gap_map['equal']['df_index']), 'shorten_type'] = 'equal'
     df.loc[df.index.isin(gap_map['pure_within']['df_index']), 'shorten_type'] = 'pure_within'
 
-    # Shorten the gaps to the target gap width if necessary
+    # Ensure the first intron is also considered for shortening
+    if group_var:
+        df['is_first_intron'] = df.groupby(group_var).cumcount() == 1
+        first_introns = df['is_first_intron']  # Boolean mask for the first introns
+        df.loc[first_introns, 'shorten_type'] = np.where(
+            df.loc[first_introns, 'width'] > target_gap_width, 'equal', df.loc[first_introns, 'shorten_type']
+        )
+
+    # Apply the shortening logic
     df['shortened_width'] = np.where(
         (df['shorten_type'] == 'equal') & (df['width'] > target_gap_width),
         target_gap_width,
         df['width']
     )
 
-    if len(gap_map['pure_within']) > 0:  # If there are gaps completely within introns/exons
-        gap_widths = gaps['end'] - gaps['start'] + 1  # Calculate widths of the gaps
-        # Calculate the difference between the original and shortened gap widths
+    if len(gap_map['pure_within']) > 0:
+        gap_widths = gaps['end'] - gaps['start'] + 1
         sum_gap_diff = gap_map['pure_within'].groupby('df_index').apply(
             lambda x: sum(np.minimum(gap_widths.iloc[x['gap_index']], target_gap_width) - target_gap_width)
         ).reset_index(name='sum_shortened_gap_diff')
 
-        # Merge the shortened gap differences into the main DataFrame
         df = df.merge(sum_gap_diff, left_index=True, right_on='df_index', how='left')
-        # Adjust the width of 'pure_within' rows based on the shortened gap differences
         df['shortened_width'] = np.where(
             df['shorten_type'] == 'pure_within',
             df['width'] - df['sum_shortened_gap_diff'],
             df['shortened_width']
         )
-        # Drop temporary columns after calculation
         df = df.drop(columns=['sum_shortened_gap_diff', 'df_index'])
 
-    # Finalize the shortened width by dropping unnecessary columns
-    df = df.drop(columns=['shorten_type', 'width']).rename(columns={'shortened_width': 'width'})
+    df = df.drop(columns=['shorten_type', 'width', 'is_first_intron']).rename(columns={'shortened_width': 'width'})
 
-    return df  # Return the DataFrame with shortened gaps
+    return df
+
 
 def _get_rescaled_txs(exons: pd.DataFrame, introns_shortened: pd.DataFrame, 
                       tx_start_gaps_shortened: pd.DataFrame, 

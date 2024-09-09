@@ -40,56 +40,57 @@ sod1_exons['fillcolor'] = sod1_exons['transcript_biotype'].map(biotype_colors)
 ## Rescale SOD exons
 sod1_rescaled = shorten_gaps(exons=sod1_exons, introns=to_intron(sod1_exons, "transcript_name"), group_var = "transcript_name")
 
-print(sod1_rescaled.head())
+print(sod1_exons.head())
+print(sod1_rescaled.head(100))
 
 
-# Create the plot
-fig = go.Figure()
+# # Create the plot
+# fig = go.Figure()
 
-# Add exons using geom_range, passing the fillcolor directly
-exon_traces = geom_range(
-    data=,
-    x_start='start',
-    x_end='end',
-    y='transcript_name',
-    fill=sod1_exons['fillcolor']  # Pass the color-mapped column
-)
-for trace in exon_traces:
-    fig.add_shape(trace)  # Add shapes to the figure using add_shape
+# # Add exons using geom_range, passing the fillcolor directly
+# exon_traces = geom_range(
+#     data=,
+#     x_start='start',
+#     x_end='end',
+#     y='transcript_name',
+#     fill=sod1_exons['fillcolor']  # Pass the color-mapped column
+# )
+# for trace in exon_traces:
+#     fig.add_shape(trace)  # Add shapes to the figure using add_shape
 
-# Create introns and add them using geom_intron
-#sod1_introns = to_intron(sod1_exons, group_var="transcript_name")
-intron_traces = geom_intron(
-    data=sod1_rescaled.loc[sod1_rescaled["type"] == "intron"],
-    x_start='start',
-    x_end='end',
-    y='transcript_name',
-    strand='strand'
-)
+# # Create introns and add them using geom_intron
+# #sod1_introns = to_intron(sod1_exons, group_var="transcript_name")
+# intron_traces = geom_intron(
+#     data=sod1_rescaled.loc[sod1_rescaled["type"] == "intron"],
+#     x_start='start',
+#     x_end='end',
+#     y='transcript_name',
+#     strand='strand'
+# )
 
-# Add exons and introns as before
-for trace in exon_traces:
-    fig.add_shape(trace)
+# # Add exons and introns as before
+# for trace in exon_traces:
+#     fig.add_shape(trace)
 
-for trace in intron_traces:
-    if isinstance(trace, dict):
-        fig.add_shape(trace)
-    else:
-        fig.add_trace(trace)
+# for trace in intron_traces:
+#     if isinstance(trace, dict):
+#         fig.add_shape(trace)
+#     else:
+#         fig.add_trace(trace)
 
-# Call the new function to set the genomic axis range
-fig = set_axis(fig, sod1_rescaled.loc[sod1_rescaled["type"] == "exon"], sod1_rescaled.loc[sod1_rescaled["type"] == "intron"])
+# # Call the new function to set the genomic axis range
+# fig = set_axis(fig, sod1_rescaled.loc[sod1_rescaled["type"] == "exon"], sod1_rescaled.loc[sod1_rescaled["type"] == "intron"])
 
-# Update layout and show the plot
-fig.update_layout(
-    title="SOD1 Transcript Structure",
-    xaxis_title="Genomic Position",
-    yaxis_title="Transcript",
-    height=400,
-    width=800,
-    showlegend=False
-)
+# # Update layout and show the plot
+# fig.update_layout(
+#     title="SOD1 Transcript Structure",
+#     xaxis_title="Genomic Position",
+#     yaxis_title="Transcript",
+#     height=400,
+#     width=800,
+#     showlegend=False
+# )
 
-# Show or save the plot
-fig.show()
-fig.write_html("sod1_transcript_structure.html")
+# # Show or save the plot
+# fig.show()
+# fig.write_html("sod1_transcript_structure.html")
