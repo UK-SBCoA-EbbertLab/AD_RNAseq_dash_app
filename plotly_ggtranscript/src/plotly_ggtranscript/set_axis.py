@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 from typing import Union, List
 
 
-def set_axis(fig, exon_data, intron_data, padding=5000):
+def set_axis(fig, exon_data, intron_data, padding=100):
     """
     Adjust the x-axis range of the plot to align with genomic coordinates.
 

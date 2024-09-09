@@ -81,7 +81,7 @@ def _get_gaps(exons: pd.DataFrame) -> pd.DataFrame:
     Parameters:
     -----------
     exons : pd.DataFrame
-        DataFrame containing exon information.
+        DataFrame containing exon information with 'seqnames', 'start', 'end', and 'strand'.
 
     Returns:
     --------
@@ -96,19 +96,30 @@ def _get_gaps(exons: pd.DataFrame) -> pd.DataFrame:
     exons_sorted = exons.sort_values('start')
 
     merged_exons = []  # List to store merged exon regions
-    for _, exon in exons_sorted.iterrows():  # Iterate over sorted exons
-        # If no exons merged yet, or current exon starts after the last merged one, add a new region
-        if not merged_exons or exon['start'] > merged_exons[-1]['end']:
-            merged_exons.append({'start': exon['start'], 'end': exon['end']})
+    current_start = exons_sorted.iloc[0]['start']
+    current_end = exons_sorted.iloc[0]['end']
+    
+    # Iterate over sorted exons to merge overlapping ones
+    for _, exon in exons_sorted.iterrows():
+        if exon['start'] > current_end:
+            # Add the current merged exon to the list
+            merged_exons.append({'start': current_start, 'end': current_end})
+            # Start a new merged exon
+            current_start = exon['start']
+            current_end = exon['end']
         else:
-            # Extend the last merged exon region to cover the current one if they overlap
-            merged_exons[-1]['end'] = max(merged_exons[-1]['end'], exon['end'])
+            # Extend the current merged exon if overlapping
+            current_end = max(current_end, exon['end'])
 
-    gaps = []  # List to store identified gaps between merged exons
-    for i in range(1, len(merged_exons)):  # Loop over consecutive merged exons
-        gap_start = merged_exons[i-1]['end'] + 1  # Start of gap after previous exon
-        gap_end = merged_exons[i]['start'] - 1  # End of gap before the next exon
-        if gap_start <= gap_end:  # Only consider valid gaps (non-negative)
+    # Append the last merged exon
+    merged_exons.append({'start': current_start, 'end': current_end})
+
+    # Identify gaps between consecutive merged exons
+    gaps = []
+    for i in range(1, len(merged_exons)):
+        gap_start = merged_exons[i-1]['end'] + 1
+        gap_end = merged_exons[i]['start'] - 1
+        if gap_start <= gap_end:  # Only consider valid gaps
             gaps.append({'start': gap_start, 'end': gap_end})
 
     return pd.DataFrame(gaps)  # Return gaps as a DataFrame
@@ -188,46 +199,71 @@ def _get_shortened_gaps(df: pd.DataFrame, gaps: pd.DataFrame, gap_map: dict,
 
     df['shorten_type'] = 'none'  # Initialize a column to track the type of shortening
 
-    if 'df_index' not in gap_map['equal'].columns or 'df_index' not in gap_map['pure_within'].columns:
-        return df  # If gap mapping failed, return the original DataFrame
+    # Check if 'df_index' exists in both 'equal' and 'pure_within'
+    if 'equal' in gap_map and 'df_index' in gap_map['equal']:
+        # Mark rows for shortening of type 'equal'
+        df.loc[df.index.isin(gap_map['equal']['df_index']), 'shorten_type'] = 'equal'
 
-    # Mark rows for shortening (both equal and pure_within matches)
-    df.loc[df.index.isin(gap_map['equal']['df_index']), 'shorten_type'] = 'equal'
-    df.loc[df.index.isin(gap_map['pure_within']['df_index']), 'shorten_type'] = 'pure_within'
+    if 'pure_within' in gap_map and 'df_index' in gap_map['pure_within']:
+        # Mark rows for shortening of type 'pure_within'
+        df.loc[df.index.isin(gap_map['pure_within']['df_index']), 'shorten_type'] = 'pure_within'
 
-    # Ensure the first intron is also considered for shortening
-    if group_var:
-        df['is_first_intron'] = df.groupby(group_var).cumcount() == 1
-        first_introns = df['is_first_intron']  # Boolean mask for the first introns
-        df.loc[first_introns, 'shorten_type'] = np.where(
-            df.loc[first_introns, 'width'] > target_gap_width, 'equal', df.loc[first_introns, 'shorten_type']
-        )
-
-    # Apply the shortening logic
+    # Apply the shortening logic for "equal" type gaps
     df['shortened_width'] = np.where(
         (df['shorten_type'] == 'equal') & (df['width'] > target_gap_width),
         target_gap_width,
         df['width']
     )
 
-    if len(gap_map['pure_within']) > 0:
-        gap_widths = gaps['end'] - gaps['start'] + 1
-        sum_gap_diff = gap_map['pure_within'].groupby('df_index').apply(
-            lambda x: sum(np.minimum(gap_widths.iloc[x['gap_index']], target_gap_width) - target_gap_width)
-        ).reset_index(name='sum_shortened_gap_diff')
+    # Handle "pure_within" type gaps
+    if 'pure_within' in gap_map and len(gap_map['pure_within']) > 0:
+        
+        overlapping_gap_indexes = gap_map['pure_within']['gap_index'].values
 
-        df = df.merge(sum_gap_diff, left_index=True, right_on='df_index', how='left')
-        df['shortened_width'] = np.where(
-            df['shorten_type'] == 'pure_within',
-            df['width'] - df['sum_shortened_gap_diff'],
-            df['shortened_width']
-        )
-        df = df.drop(columns=['sum_shortened_gap_diff', 'df_index'])
+        if len(overlapping_gap_indexes) > 0:
 
-    df = df.drop(columns=['shorten_type', 'width', 'is_first_intron']).rename(columns={'shortened_width': 'width'})
+            # Calculate the sum of the reduction in gap widths for each unique intron index
+            sum_gap_diff = pd.DataFrame({
+                'intron_indexes': gap_map['pure_within']['df_index'],
+                'gap_width': gaps.loc[overlapping_gap_indexes, 'end'].values - gaps.loc[overlapping_gap_indexes, 'start'].values + 1
+            })
+
+            ## Reduce the widths
+            sum_gap_diff['shortened_gap_width'] = np.where(
+                sum_gap_diff['gap_width'] > target_gap_width, 
+                target_gap_width, 
+                sum_gap_diff['gap_width']
+            )
+
+
+            sum_gap_diff['shortened_gap_diff'] = sum_gap_diff['gap_width'] - sum_gap_diff['shortened_gap_width']
+
+
+            # Sum the shortened gap differences for each intron to ensure proper shortening
+            sum_gap_diff = sum_gap_diff.groupby('intron_indexes').agg(sum_shortened_gap_diff=('shortened_gap_diff', 'sum')).reset_index()
+
+            # Add a new column initialized with NaN (equivalent to NA_integer_ in R)
+            df["sum_shortened_gap_diff"] = np.nan
+
+            # Set the "sum_shortened_gap_diff" column in df where the index is in "intron_indexes" from sum_gap_diff
+            df.loc[df.index.isin(sum_gap_diff['intron_indexes']), 'sum_shortened_gap_diff'] = sum_gap_diff.set_index('intron_indexes')['sum_shortened_gap_diff']
+
+            # Step 3: Apply the mutation to adjust the 'shortened_width' column
+            df['shortened_width'] = np.where(
+                df['sum_shortened_gap_diff'].isna(),
+                df['shortened_width'],  # keep original shortened_width if sum_shortened_gap_diff is NaN
+                df['width'] - df['sum_shortened_gap_diff']  # adjust shortened_width otherwise
+            )
+
+            # Step 4: Drop the 'sum_shortened_gap_diff' column
+            df = df.drop(columns=['sum_shortened_gap_diff'])
+
+            print(df.head())
+
+            df = df.drop(columns=['shorten_type', 'width']).rename(columns={'shortened_width': 'width'})
+
 
     return df
-
 
 def _get_rescaled_txs(exons: pd.DataFrame, introns_shortened: pd.DataFrame, 
                       tx_start_gaps_shortened: pd.DataFrame, 
