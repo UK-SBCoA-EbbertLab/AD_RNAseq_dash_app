@@ -8,8 +8,45 @@ import os
 sys.path.append("C:/Users/local_bag222/Desktop/dash_apps/AD_RNAseq_dash_app")
 from plotly_ggtranscript import geom_range, geom_intron, to_intron, shorten_gaps, set_axis, calculate_cds_exon_difference, rescale_cds
 
+# Example DataFrame: Contains a single column 'Names' with a list of names
+data = {'Names': ['Alice', 'Bob', 'Charlie', 'David']}
+df = pd.DataFrame(data)
+
+def get_valid_input(df, column_name):
+    """
+    Continuously prompts the user for input until a valid value (one that exists in the specified column of the DataFrame) is provided.
+    
+    Parameters:
+    df (pd.DataFrame): The DataFrame in which to check for the input value.
+    column_name (str): The column name of the DataFrame where the value will be searched.
+    
+    Returns:
+    str: The valid input provided by the user that exists in the DataFrame column.
+    """
+    
+    # Infinite loop to keep asking for input until a valid one is provided
+    while True:
+        # Request input from the user
+        user_input = input(f"Enter a value for {column_name}: ")
+        
+        # Check if the input exists in the specified column of the DataFrame
+        if user_input in df[column_name].values:
+            print(f"'{user_input}' found in the column '{column_name}'.")
+            return user_input  # Return the valid input
+        
+        # If the input does not exist in the column, ask the user to try again
+        else:
+            print(f"'{user_input}' not found in column '{column_name}'. Please try again.")
+
+
+
+
 ## Import annotations
-sod1_annotation = pd.read_csv("./raw_data/test_data/test_annotations.tsv", sep="\t")
+annotation = pd.read_csv("./raw_data/test_data/test_annotations.tsv", sep="\t")
+
+## Get gene name
+gene_name = get_valid_input(annotation, "gene_name")
+annotation = annotation.loc[annotation["gene_name"] == "gene_name"].copy()
 
 # Define a mapping from transcript_biotype to colors
 biotype_colors = {
@@ -18,17 +55,19 @@ biotype_colors = {
     'NA': 'gray'
 }
 
+
+
 ## Add biotype colors
-sod1_annotation['fillcolor'] = sod1_annotation['transcript_biotype'].map(biotype_colors)
+annotation['fillcolor'] = annotation['transcript_biotype'].map(biotype_colors)
 
 # Extract exons
-sod1_exons = sod1_annotation[sod1_annotation['type'] == 'exon']
+exons = annotation[annotation['type'] == 'exon']
 
 ## Extract CDS
-sod1_cds = sod1_annotation[sod1_annotation['type'] == 'CDS']
+cds = annotation[annotation['type'] == 'CDS']
 
 ## Calculate CDS and exon differences
-sod1_cds_diff = calculate_cds_exon_difference(sod1_cds, sod1_exons)
+cds_diff = calculate_cds_exon_difference(cds, exons)
 
 
 # Use .loc to avoid SettingWithCopyWarning
@@ -61,7 +100,7 @@ exon_traces = geom_range(
     x_end='end',
     y='transcript_name',
     fill=sod1_rescaled_exons['fillcolor'], 
-    height=0.5
+    height=0.15
 )
 
 ## Add CDS traces
@@ -71,7 +110,7 @@ cds_traces = geom_range(
     x_end='end',
     y='transcript_name',
     fill=sod1_rescaled_cds['fillcolor'],
-    height= 0.75
+    height= 0.3
 )
 
 
@@ -82,7 +121,9 @@ intron_traces = geom_intron(
     x_start='start',
     x_end='end',
     y='transcript_name',
-    strand='strand'
+    strand='strand',
+    arrow_min_intron_length=400,
+    arrow_size=1.5
 )
 
 # Add exons, CDS, and introns as before

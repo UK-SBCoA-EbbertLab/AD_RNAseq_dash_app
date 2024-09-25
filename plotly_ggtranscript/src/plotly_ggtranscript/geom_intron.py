@@ -4,7 +4,7 @@ from plotly.subplots import make_subplots
 
 def geom_intron(data, x_start='start', x_end='end', y='transcript_name', 
                 strand='strand', color='black', line_width=0.5, opacity=1,
-                arrow_color='black', arrow_size=0.3, arrow_min_intron_length=0):
+                arrow_color='black', arrow_size=0.3, arrow_min_intron_length=100):
     """
     Create a list of Plotly intron trace objects with strand arrows.
     
@@ -54,17 +54,24 @@ def geom_intron(data, x_start='start', x_end='end', y='transcript_name',
             opacity=opacity
         )
         traces.append(trace)
-        
+
+
         if (row[x_end] - row[x_start]) > arrow_min_intron_length:
-            num_arrows = int((row[x_end] - row[x_start]) / 10000)
+
+            if arrow_min_intron_length < 1:
+                arrow_min_intron_length=100
+
+            num_arrows = int((row[x_end] - row[x_start]) / arrow_min_intron_length)
             for i in range(num_arrows):
-                arrow_x = row[x_start] + i * ((row[x_end] - row[x_start]) / num_arrows)
+                arrow_x = ((row[x_start] + 100) + i * ((row[x_end] - row[x_start]) / num_arrows))
+                if arrow_x < 
                 arrow_trace = go.Scatter(
                     x=[arrow_x],
-                    y=[y_pos],
-                    mode='markers',
-                    marker=dict(symbol='triangle-right' if row[strand] == '+' else 'triangle-left',
-                                size=arrow_size * 10, color=arrow_color),
+                    y=[y_pos -0.02],
+                    mode='text',
+                    text=">",
+                    textfont=dict(size=(arrow_size*10), color='black'),
+                    textposition='middle right',
                     showlegend=False
                 )
                 traces.append(arrow_trace)

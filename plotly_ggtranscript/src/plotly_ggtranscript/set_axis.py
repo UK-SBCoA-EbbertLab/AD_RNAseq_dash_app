@@ -35,4 +35,10 @@ def set_axis(fig, exon_data, intron_data, padding=100):
     # Update the x-axis range of the plot to reflect the correct genomic range
     fig.update_xaxes(range=[x_min, x_max])
 
+    ## Total number of transcript
+    num_transcripts = exon_data["transcript_name"].nunique()
+
+    # Update the x-axis range of the plot to reflect the number of transcripts
+    fig.update_yaxes(range=[-0.8, (num_transcripts-0.2)])
+
     return fig
