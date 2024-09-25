@@ -55,6 +55,8 @@ def geom_intron(data, x_start='start', x_end='end', y='transcript_name',
         )
         traces.append(trace)
 
+        ## Define arrow direction
+        arrow_direction = ">" if row['strand'] == "+" else "<"
 
         if (row[x_end] - row[x_start]) > arrow_min_intron_length:
 
@@ -68,7 +70,7 @@ def geom_intron(data, x_start='start', x_end='end', y='transcript_name',
                     x=[arrow_x],
                     y=[y_pos -0.02],
                     mode='text',
-                    text=">",
+                    text= arrow_direction,
                     textfont=dict(size=(arrow_size*10), color='black'),
                     textposition='middle right',
                     showlegend=False

@@ -18,17 +18,17 @@ def calculate_cds_exon_difference(gene_cds_regions, gene_exons):
     -------
     cds_exon_diff : pd.DataFrame
         DataFrame resulting from a left join of the CDS and exon data, including the calculated
-        absolute differences 'd_start' and 'd_end' between exon and CDS start and end positions.
+        absolute differences 'diff_start' and 'diff_end' between exon and CDS start and end positions.
     """
 
-    # Step 1: Rename 'start' and 'end' columns in CDS regions to 'c_start' and 'c_end'
+    # Step 1: Rename 'start' and 'end' columns in CDS regions to 'cds_start' and 'cds_end'
     cds_regions = gene_cds_regions.rename(columns={'start': 'cds_start', 'end': 'cds_end'})
 
     # Remove the 'type' column if it exists
     if 'type' in cds_regions.columns:
         cds_regions = cds_regions.drop(columns=['type'])
 
-    # Step 2: Rename 'start' and 'end' columns in exon regions to 'e_start' and 'e_end'
+    # Step 2: Rename 'start' and 'end' columns in exon regions to 'exon_start' and 'exon_end'
     exons = gene_exons.rename(columns={'start': 'exon_start', 'end': 'exon_end'})
 
     # Remove the 'type' column if it exists
