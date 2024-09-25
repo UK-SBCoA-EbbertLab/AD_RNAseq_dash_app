@@ -258,8 +258,6 @@ def _get_shortened_gaps(df: pd.DataFrame, gaps: pd.DataFrame, gap_map: dict,
             # Step 4: Drop the 'sum_shortened_gap_diff' column
             df = df.drop(columns=['sum_shortened_gap_diff'])
 
-            print(df.head())
-
             df = df.drop(columns=['shorten_type', 'width']).rename(columns={'shortened_width': 'width'})
 
 
