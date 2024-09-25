@@ -9,63 +9,19 @@ sys.path.append("C:/Users/local_bag222/Desktop/dash_apps/AD_RNAseq_dash_app")
 from plotly_ggtranscript import geom_range, geom_intron, to_intron, shorten_gaps, set_axis, calculate_cds_exon_difference, rescale_cds
 
 # Create the sod1_annotation DataFrame
-# Define the corrected data
 data = {
-    'seqnames': ['21'] * 35,
-    'start': [
-        31659666, 31659666, 31659770, 31663790, 31663790, 31666449, 31666449,
-        31667258, 31667258, 31668471, 31668471, 31659693, 31659693, 31661549,
-        31663790, 31666449, 31667258, 31659693, 31659693, 31659770, 31663790,
-        31663790, 31666449, 31666449, 31667258, 31667258, 31668471, 31668471,
-        31659709, 31659709, 31663790, 31666449, 31667258, 31668471
-    ],
-    'end': [
-        31668931, 31659784, 31659784, 31663886, 31663886, 31666518, 31666518,
-        31667375, 31667375, 31668931, 31668575, 31667341, 31659841, 31661734,
-        31663886, 31666518, 31667341, 31668931, 31659841, 31659841, 31663886,
-        31663886, 31666518, 31666518, 31667375, 31667375, 31668931, 31668575,
-        31668931, 31660708, 31663886, 31666518, 31667375, 31668931
-    ],
-    'strand': ['+'] * 35,
-    'type': [
-        'transcript', 'exon', 'CDS', 'exon', 'CDS', 'exon', 'CDS', 'exon',
-        'CDS', 'exon', 'CDS', 'transcript', 'exon', 'exon', 'exon', 'exon',
-        'exon', 'transcript', 'exon', 'CDS', 'exon', 'CDS', 'exon', 'CDS',
-        'exon', 'CDS', 'exon', 'CDS', 'transcript', 'exon', 'exon', 'exon',
-        'exon', 'exon'
-    ],
-    'gene_name': ['SOD1'] * 35,
-    'transcript_name': [
-        'SOD1-202', 'SOD1-202', 'SOD1-202', 'SOD1-202', 'SOD1-202',
-        'SOD1-202', 'SOD1-202', 'SOD1-202', 'SOD1-202', 'SOD1-202',
-        'SOD1-202', 'SOD1-204', 'SOD1-204', 'SOD1-204', 'SOD1-204',
-        'SOD1-204', 'SOD1-204', 'SOD1-201', 'SOD1-201', 'SOD1-201',
-        'SOD1-201', 'SOD1-201', 'SOD1-201', 'SOD1-201', 'SOD1-201',
-        'SOD1-201', 'SOD1-201', 'SOD1-201', 'SOD1-203', 'SOD1-203',
-        'SOD1-203', 'SOD1-203', 'SOD1-203', 'SOD1-203'
-    ],
-    'transcript_biotype': [
-        'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding',
-        'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding',
-        'protein_coding', 'protein_coding', 'protein_coding', 'processed_transcript',
-        'processed_transcript', 'processed_transcript', 'processed_transcript',
-        'processed_transcript', 'processed_transcript', 'protein_coding',
-        'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding',
-        'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding',
-        'protein_coding', 'processed_transcript', 'processed_transcript',
-        'processed_transcript', 'processed_transcript', 'processed_transcript',
-        'processed_transcript'
-    ],
-    'exon_number': [
-        np.nan, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0, 4.0, 5.0, 5.0,
-        np.nan, 1.0, 2.0, 3.0, 4.0, 5.0, np.nan, 1.0, 1.0, 2.0, 2.0,
-        3.0, 3.0, 4.0, 4.0, 5.0, 5.0, np.nan, 1.0, 2.0, 3.0, 4.0,
-        5.0
-    ]
+    'seqnames': ['21'] * 43,
+    'start': [31659666, 31659666, 31659666, 31659770, 31659770, 31663790, 31663790, 31666449, 31666449, 31667258, 31667258, 31668471, 31668471, 31668576, 31659666, 31668579, 31659693, 31659693, 31661549, 31663790, 31666449, 31667258, 31659693, 31659693, 31659770, 31659770, 31663790, 31663790, 31666449, 31666449, 31667258, 31667258, 31668471, 31668471, 31668576, 31659693, 31668579, 31659709, 31659709, 31663790, 31666449, 31667258, 31668471],
+    'end': [31668931, 31668931, 31659784, 31659784, 31659772, 31663886, 31663886, 31666518, 31666518, 31667375, 31667375, 31668931, 31668575, 31668578, 31659769, 31668931, 31667341, 31659841, 31661734, 31663886, 31666518, 31667341, 31668931, 31659841, 31659841, 31659772, 31663886, 31663886, 31666518, 31666518, 31667375, 31667375, 31668931, 31668575, 31668578, 31659769, 31668931, 31668931, 31660708, 31663886, 31666518, 31667375, 31668931],
+    'strand': ['+'] * 43,
+    'type': ['gene', 'transcript', 'exon', 'CDS', 'start_codon', 'exon', 'CDS', 'exon', 'CDS', 'exon', 'CDS', 'exon', 'CDS', 'stop_codon', 'five_prime_utr', 'three_prime_utr', 'transcript', 'exon', 'exon', 'exon', 'exon', 'exon', 'transcript', 'exon', 'CDS', 'start_codon', 'exon', 'CDS', 'exon', 'CDS', 'exon', 'CDS', 'exon', 'CDS', 'stop_codon', 'five_prime_utr', 'three_prime_utr', 'transcript', 'exon', 'exon', 'exon', 'exon', 'exon'],
+    'gene_name': ['SOD1'] * 43,
+    'transcript_name': ['NA', 'SOD1-202', 'SOD1-202', 'SOD1-202', 'SOD1-202', 'SOD1-202', 'SOD1-202', 'SOD1-202', 'SOD1-202', 'SOD1-202', 'SOD1-202', 'SOD1-202', 'SOD1-202', 'SOD1-202', 'SOD1-202', 'SOD1-202', 'SOD1-204', 'SOD1-204', 'SOD1-204', 'SOD1-204', 'SOD1-204', 'SOD1-204', 'SOD1-201', 'SOD1-201', 'SOD1-201', 'SOD1-201', 'SOD1-201', 'SOD1-201', 'SOD1-201', 'SOD1-201', 'SOD1-201', 'SOD1-201', 'SOD1-201', 'SOD1-201', 'SOD1-201', 'SOD1-201', 'SOD1-201', 'SOD1-203', 'SOD1-203', 'SOD1-203', 'SOD1-203', 'SOD1-203', 'SOD1-203'],
+    'transcript_biotype': ['NA', 'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding', 'processed_transcript', 'processed_transcript', 'processed_transcript', 'processed_transcript', 'processed_transcript', 'processed_transcript', 'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding', 'protein_coding', 'processed_transcript', 'processed_transcript', 'processed_transcript', 'processed_transcript', 'processed_transcript', 'processed_transcript']
 }
 
-# Create the DataFrame
 sod1_annotation = pd.DataFrame(data)
+sod1_annotation.dropna(inplace=True)
 
 # Define a mapping from transcript_biotype to colors
 biotype_colors = {
