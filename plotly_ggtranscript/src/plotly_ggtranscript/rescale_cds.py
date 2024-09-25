@@ -1,6 +1,6 @@
 import pandas as pd
 
-def rescale_cds(cds_exon_diff, gene_rescaled_exons, factor_order):
+def rescale_cds(cds_exon_diff, gene_rescaled_exons):
     """
     Rescales CDS regions based on exon positions and the calculated differences between CDS and exon positions.
     This function aligns the CDS regions to the rescaled exon positions and adjusts their start and end points
@@ -20,8 +20,6 @@ def rescale_cds(cds_exon_diff, gene_rescaled_exons, factor_order):
         - 'start': Rescaled start position of the exon.
         - 'end': Rescaled end position of the exon.
         - Any columns necessary for joining.
-    factor_order : list
-        List specifying the desired order of 'transcript_id' for categorical ordering.
 
     Returns
     -------
@@ -98,20 +96,5 @@ def rescale_cds(cds_exon_diff, gene_rescaled_exons, factor_order):
 
     # Debug statement to check the final DataFrame before setting 'transcript_id' as categorical
     print("Final DataFrame before setting 'transcript_id' as categorical:\n", gene_rescaled_cds.head())
-
-    # Step 7: Set 'transcript_id' as a categorical variable with the specified order
-    # - This ensures that the 'transcript_id' column follows the desired ordering
-
-    if 'transcript_id' in gene_rescaled_cds.columns:
-        gene_rescaled_cds['transcript_id'] = pd.Categorical(
-            gene_rescaled_cds['transcript_id'],
-            categories=factor_order,
-            ordered=True
-        )
-    else:
-        raise KeyError("'transcript_id' column not found in the DataFrame.")
-
-    # Debug statement to confirm 'transcript_id' is set as categorical
-    print("DataFrame after setting 'transcript_id' as categorical:\n", gene_rescaled_cds.head())
 
     return gene_rescaled_cds

@@ -6,7 +6,7 @@ from plotly.subplots import make_subplots
 import sys
 import os
 sys.path.append("C:/Users/local_bag222/Desktop/dash_apps/AD_RNAseq_dash_app")
-from plotly_ggtranscript import geom_range, geom_intron, to_intron, shorten_gaps, set_axis
+from plotly_ggtranscript import geom_range, geom_intron, to_intron, shorten_gaps, set_axis, calculate_cds_exon_difference, rescale_cds
 
 # Create the sod1_annotation DataFrame
 data = {
@@ -30,48 +30,70 @@ biotype_colors = {
     'NA': 'gray'
 }
 
+## Add biotype colors
+sod1_annotation['fillcolor'] = sod1_annotation['transcript_biotype'].map(biotype_colors)
+
 # Extract exons
 sod1_exons = sod1_annotation[sod1_annotation['type'] == 'exon']
 
+## Extract CDS
+sod1_cds = sod1_annotation[sod1_annotation['type'] == 'CDS']
+
+## Calculate CDS and exon differences
+sod1_cds_diff = calculate_cds_exon_difference(sod1_cds, sod1_exons)
+
 
 # Use .loc to avoid SettingWithCopyWarning
-sod1_exons = sod1_exons.copy()  # Make an explicit copy
-sod1_exons['fillcolor'] = sod1_exons['transcript_biotype'].map(biotype_colors)
+sod1_exons = sod1_exons.copy()
 
 ## Rescale SOD exons
 sod1_rescaled = shorten_gaps(exons=sod1_exons, introns=to_intron(sod1_exons, "transcript_name"), group_var = "transcript_name")
 
-print(sod1_exons.head(100))
-print(sod1_rescaled.head(100))
+## Define rescaled exons and introns
+sod1_rescaled_exons = sod1_rescaled.loc[sod1_rescaled["type"] == "exon"].copy()
+sod1_rescaled_introns = sod1_rescaled.loc[sod1_rescaled["type"] == "intron"].copy()
 
-
+## Correct CDS coordinates for new exon coordinates
+sod1_rescaled_cds = rescale_cds(sod1_cds_diff, sod1_rescaled_exons)
 
 # Create the plot
 fig = go.Figure()
 
 # Add exons using geom_range, passing the fillcolor directly
 exon_traces = geom_range(
-    data=sod1_rescaled.loc[sod1_rescaled["type"] == "exon"],
+    data=sod1_rescaled_exons,
     x_start='start',
     x_end='end',
     y='transcript_name',
-    fill=sod1_rescaled.loc[sod1_rescaled["type"] == "exon"]['fillcolor']  # Pass the color-mapped column
+    fill=sod1_rescaled_exons['fillcolor'], 
+    height=0.2
 )
-for trace in exon_traces:
-    fig.add_shape(trace)  # Add shapes to the figure using add_shape
+
+## Add CDS traces
+cds_traces = geom_range(
+    data=sod1_rescaled_cds,
+    x_start='start',
+    x_end='end',
+    y='transcript_name',
+    fill=sod1_rescaled_exons['fillcolor'],  
+    height=0.75
+)
 
 # Create introns and add them using geom_intron
 #sod1_introns = to_intron(sod1_exons, group_var="transcript_name")
 intron_traces = geom_intron(
-    data=sod1_rescaled.loc[sod1_rescaled["type"] == "intron"],
+    data=sod1_rescaled_introns,
     x_start='start',
     x_end='end',
     y='transcript_name',
     strand='strand'
 )
 
-# Add exons and introns as before
+# Add exons, CDS, and introns as before
 for trace in exon_traces:
+    fig.add_shape(trace)
+
+for trace in cds_traces:
     fig.add_shape(trace)
 
 for trace in intron_traces:
@@ -81,7 +103,7 @@ for trace in intron_traces:
         fig.add_trace(trace)
 
 # Call the new function to set the genomic axis range
-fig = set_axis(fig, sod1_rescaled.loc[sod1_rescaled["type"] == "exon"], sod1_rescaled.loc[sod1_rescaled["type"] == "intron"])
+fig = set_axis(fig, sod1_rescaled_exons, sod1_rescaled_introns)
 
 # Update layout and show the plot
 fig.update_layout(
