@@ -35,7 +35,7 @@ def rescale_cds(cds_exon_diff, gene_rescaled_exons):
     cds_prepared = (
         cds_exon_diff
         .assign(type="CDS")
-        .drop(columns=['c_start', 'c_end', 'e_start', 'e_end'], errors='ignore')
+        .drop(columns=['cds_start', 'cds_end', 'exon_start', 'exon_end'], errors='ignore')
     )
 
     # Step 2: Prepare the Exon DataFrame
@@ -44,7 +44,7 @@ def rescale_cds(cds_exon_diff, gene_rescaled_exons):
 
     exons_prepared = (
         gene_rescaled_exons
-        .rename(columns={'start': 'e_start', 'end': 'e_end'})
+        .rename(columns={'start': 'exon_start', 'end': 'exon_end'})
         .drop(columns=['type'], errors='ignore')
     )
 
@@ -69,14 +69,14 @@ def rescale_cds(cds_exon_diff, gene_rescaled_exons):
     # - 'start' is adjusted by adding 'd_start' to 'e_start'
     # - 'end' is adjusted by subtracting 'd_end' from 'e_end'
 
-    gene_rescaled_cds['start'] = gene_rescaled_cds['e_start'] + gene_rescaled_cds['d_start']
-    gene_rescaled_cds['end'] = gene_rescaled_cds['e_end'] - gene_rescaled_cds['d_end']
+    gene_rescaled_cds['start'] = gene_rescaled_cds['exon_start'] + gene_rescaled_cds['diff_start']
+    gene_rescaled_cds['end'] = gene_rescaled_cds['exon_end'] - gene_rescaled_cds['diff_end']
 
     # Step 6: Drop unnecessary columns used for calculations
     # - Remove 'e_start', 'e_end', 'd_start', 'd_end' as they are no longer needed
 
     gene_rescaled_cds = gene_rescaled_cds.drop(
-        columns=['e_start', 'e_end', 'd_start', 'd_end'],
+        columns=['exon_start', 'exon_end', 'diff_start', 'diff_end'],
         errors='ignore'
     )
 
