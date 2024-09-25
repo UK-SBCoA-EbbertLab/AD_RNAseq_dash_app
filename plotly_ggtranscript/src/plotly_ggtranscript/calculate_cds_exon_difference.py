@@ -22,14 +22,14 @@ def calculate_cds_exon_difference(gene_cds_regions, gene_exons):
     """
 
     # Step 1: Rename 'start' and 'end' columns in CDS regions to 'c_start' and 'c_end'
-    cds_regions = gene_cds_regions.rename(columns={'start': 'c_start', 'end': 'c_end'})
+    cds_regions = gene_cds_regions.rename(columns={'start': 'cds_start', 'end': 'cds_end'})
 
     # Remove the 'type' column if it exists
     if 'type' in cds_regions.columns:
         cds_regions = cds_regions.drop(columns=['type'])
 
     # Step 2: Rename 'start' and 'end' columns in exon regions to 'e_start' and 'e_end'
-    exons = gene_exons.rename(columns={'start': 'e_start', 'end': 'e_end'})
+    exons = gene_exons.rename(columns={'start': 'exon_start', 'end': 'exon_end'})
 
     # Remove the 'type' column if it exists
     if 'type' in exons.columns:
@@ -43,10 +43,12 @@ def calculate_cds_exon_difference(gene_cds_regions, gene_exons):
     # Step 4: Perform the left join on the common columns
     cds_exon_diff = pd.merge(cds_regions, exons, how='left', on=common_columns)
 
+    print(cds_exon_diff)
+
     # Step 5: Calculate absolute differences between exon and CDS start positions
-    cds_exon_diff['d_start'] = (cds_exon_diff['e_start'] - cds_exon_diff['c_start']).abs()
+    cds_exon_diff['diff_start'] = (cds_exon_diff['exon_start'] - cds_exon_diff['cds_start']).abs()
 
     # Step 6: Calculate absolute differences between exon and CDS end positions
-    cds_exon_diff['d_end'] = (cds_exon_diff['e_end'] - cds_exon_diff['c_end']).abs()
+    cds_exon_diff['diff_end'] = (cds_exon_diff['exon_end'] - cds_exon_diff['cds_end']).abs()
 
     return cds_exon_diff

@@ -64,7 +64,6 @@ def geom_intron(data, x_start='start', x_end='end', y='transcript_name',
             num_arrows = int((row[x_end] - row[x_start]) / arrow_min_intron_length)
             for i in range(num_arrows):
                 arrow_x = ((row[x_start] + 100) + i * ((row[x_end] - row[x_start]) / num_arrows))
-                if arrow_x < 
                 arrow_trace = go.Scatter(
                     x=[arrow_x],
                     y=[y_pos -0.02],

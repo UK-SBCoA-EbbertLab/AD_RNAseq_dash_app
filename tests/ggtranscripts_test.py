@@ -44,9 +44,14 @@ def get_valid_input(df, column_name):
 ## Import annotations
 annotation = pd.read_csv("./raw_data/test_data/test_annotations.tsv", sep="\t")
 
+print(annotation.head(10))
+
 ## Get gene name
 gene_name = get_valid_input(annotation, "gene_name")
-annotation = annotation.loc[annotation["gene_name"] == "gene_name"].copy()
+annotation = annotation.loc[annotation["gene_name"] == gene_name].copy()
+
+print(annotation.head())
+
 
 # Define a mapping from transcript_biotype to colors
 biotype_colors = {
@@ -71,45 +76,45 @@ cds_diff = calculate_cds_exon_difference(cds, exons)
 
 
 # Use .loc to avoid SettingWithCopyWarning
-sod1_exons = sod1_exons.copy()
+exons = exons.copy()
 
 ## Rescale SOD exons
-sod1_rescaled = shorten_gaps(exons=sod1_exons, introns=to_intron(sod1_exons, "transcript_name"), group_var = "transcript_name")
+rescaled = shorten_gaps(exons=exons, introns=to_intron(exons, "transcript_name"), group_var = "transcript_name")
 
 ## Define rescaled exons and introns
-sod1_rescaled_exons = sod1_rescaled.loc[sod1_rescaled["type"] == "exon"].copy()
-sod1_rescaled_introns = sod1_rescaled.loc[sod1_rescaled["type"] == "intron"].copy()
+rescaled_exons = rescaled.loc[rescaled["type"] == "exon"].copy()
+rescaled_introns = rescaled.loc[rescaled["type"] == "intron"].copy()
 
 ## Correct CDS coordinates for new exon coordinates
-sod1_rescaled_cds = rescale_cds(sod1_cds_diff, sod1_rescaled_exons)
+rescaled_cds = rescale_cds(cds_diff, rescaled_exons)
 
 # Create the plot
 fig = go.Figure()
 
 ## Debug
-print(sod1_rescaled_cds.loc[sod1_rescaled_cds["transcript_name"].isin(["SOD1-202", "SOD1-201"])].head(20))
-print(sod1_rescaled_exons.loc[sod1_rescaled_exons["transcript_name"].isin(["SOD1-202", "SOD1-201"])].head(20))
+#print(rescaled_cds.loc[sorescaled_cds["transcript_name"].isin(["SOD1-202", "SOD1-201"])].head(20))
+#print(sod1_rescaled_exons.loc[sod1_rescaled_exons["transcript_name"].isin(["SOD1-202", "SOD1-201"])].head(20))
 
-sod1_rescaled_cds.sort_values(by=["transcript_name"], inplace=True)
-sod1_rescaled_exons.sort_values(by=["transcript_name"], inplace=True)
+rescaled_cds.sort_values(by=["transcript_name"], inplace=True)
+rescaled_exons.sort_values(by=["transcript_name"], inplace=True)
 
 # Add exons using geom_range, passing the fillcolor directly
 exon_traces = geom_range(
-    data=sod1_rescaled_exons,
+    data=rescaled_exons,
     x_start='start',
     x_end='end',
     y='transcript_name',
-    fill=sod1_rescaled_exons['fillcolor'], 
+    fill=rescaled_exons['fillcolor'], 
     height=0.15
 )
 
 ## Add CDS traces
 cds_traces = geom_range(
-    data=sod1_rescaled_cds,
+    data=rescaled_cds,
     x_start='start',
     x_end='end',
     y='transcript_name',
-    fill=sod1_rescaled_cds['fillcolor'],
+    fill=rescaled_cds['fillcolor'],
     height= 0.3
 )
 
@@ -117,7 +122,7 @@ cds_traces = geom_range(
 # Create introns and add them using geom_intron
 #sod1_introns = to_intron(sod1_exons, group_var="transcript_name")
 intron_traces = geom_intron(
-    data=sod1_rescaled_introns,
+    data=rescaled_introns,
     x_start='start',
     x_end='end',
     y='transcript_name',
@@ -140,11 +145,11 @@ for trace in intron_traces:
         fig.add_trace(trace)
 
 # Call the new function to set the genomic axis range
-fig = set_axis(fig, sod1_rescaled_exons, sod1_rescaled_introns)
+fig = set_axis(fig, rescaled_exons, rescaled_introns)
 
 # Update layout and show the plot
 fig.update_layout(
-    title="SOD1 Transcript Structure",
+    title=(gene_name + " Transcript Structure"),
     xaxis_title="Genomic Position",
     yaxis_title="Transcript",
     height=400,
@@ -154,4 +159,4 @@ fig.update_layout(
 
 # Show or save the plot
 fig.show()
-fig.write_html("sod1_transcript_structure.html")
+fig.write_html((gene_name + "_transcript_structure.html"))
