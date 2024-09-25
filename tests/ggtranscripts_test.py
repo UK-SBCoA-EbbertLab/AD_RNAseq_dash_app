@@ -55,8 +55,8 @@ print(annotation.head())
 
 # Define a mapping from transcript_biotype to colors
 biotype_colors = {
-    'protein_coding': 'blue',
-    'processed_transcript': 'green',
+    'protein_coding': '#F8766D',
+    'processed_transcript': '#00BFC4',
     'NA': 'gray'
 }
 
@@ -91,10 +91,6 @@ rescaled_cds = rescale_cds(cds_diff, rescaled_exons)
 # Create the plot
 fig = go.Figure()
 
-## Debug
-#print(rescaled_cds.loc[sorescaled_cds["transcript_name"].isin(["SOD1-202", "SOD1-201"])].head(20))
-#print(sod1_rescaled_exons.loc[sod1_rescaled_exons["transcript_name"].isin(["SOD1-202", "SOD1-201"])].head(20))
-
 rescaled_cds.sort_values(by=["transcript_name"], inplace=True)
 rescaled_exons.sort_values(by=["transcript_name"], inplace=True)
 
@@ -105,7 +101,7 @@ exon_traces = geom_range(
     x_end='end',
     y='transcript_name',
     fill=rescaled_exons['fillcolor'], 
-    height=0.15
+    height=0.3
 )
 
 ## Add CDS traces
@@ -115,7 +111,7 @@ cds_traces = geom_range(
     x_end='end',
     y='transcript_name',
     fill=rescaled_cds['fillcolor'],
-    height= 0.3
+    height= 0.5
 )
 
 
@@ -128,7 +124,7 @@ intron_traces = geom_intron(
     y='transcript_name',
     strand='strand',
     arrow_min_intron_length=400,
-    arrow_size=1.5
+    arrow_size=1
 )
 
 # Add exons, CDS, and introns as before
@@ -149,12 +145,18 @@ fig = set_axis(fig, rescaled_exons, rescaled_introns)
 
 # Update layout and show the plot
 fig.update_layout(
-    title=(gene_name + " Transcript Structure"),
-    xaxis_title="Genomic Position",
-    yaxis_title="Transcript",
+    title={'text': f"{gene_name} Transcript Structure", 'x': 0.5, 'y': 0.8, 'xanchor': 'center', 'yanchor': 'top',
+           'font': dict(family='DejaVu Sans', size=14)},
+    xaxis_title="",
+    yaxis_title="",
     height=400,
     width=800,
-    showlegend=False
+    showlegend=False,
+    yaxis=dict(
+        tickvals=list(range(rescaled_exons["transcript_name"].nunique())),               # Positions of the ticks
+        ticktext=rescaled_exons["transcript_name"].unique().tolist(),  # Custom labels for the ticks
+        tickfont=dict(size=10, family='DejaVu Sans', color='black')),
+        xaxis=dict(showticklabels=False)
 )
 
 # Show or save the plot

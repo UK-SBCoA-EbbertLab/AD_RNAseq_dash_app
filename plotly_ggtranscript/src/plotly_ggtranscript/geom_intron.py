@@ -63,18 +63,20 @@ def geom_intron(data, x_start='start', x_end='end', y='transcript_name',
             if arrow_min_intron_length < 1:
                 arrow_min_intron_length=100
 
-            num_arrows = int((row[x_end] - row[x_start]) / arrow_min_intron_length)
+            num_arrows = int((row[x_end] - row[x_start]) / (arrow_min_intron_length))
             for i in range(num_arrows):
-                arrow_x = ((row[x_start] + 100) + i * ((row[x_end] - row[x_start]) / num_arrows))
-                arrow_trace = go.Scatter(
-                    x=[arrow_x],
-                    y=[y_pos -0.02],
-                    mode='text',
-                    text= arrow_direction,
-                    textfont=dict(size=(arrow_size*10), color='black'),
-                    textposition='middle right',
-                    showlegend=False
-                )
-                traces.append(arrow_trace)
+                arrow_x = (row[x_start] + i * ((row[x_end] - row[x_start]) / num_arrows))
+                if ((abs(arrow_x - row[x_end]) > 100) and (abs(arrow_x - row[x_start]) > 100)):
+                    arrow_trace = go.Scatter(
+                        x=[arrow_x],
+                        y=[y_pos],
+                        mode='markers',
+                        marker=dict(symbol="arrow-right" if row["strand"] == "+" else "arrow-left",  # Use 'symbol' as the key
+                        size=(arrow_size * 10),
+                        color="black"),
+                        showlegend=False,
+                        hoverinfo="none"
+                    )
+                    traces.append(arrow_trace)
     
     return traces
