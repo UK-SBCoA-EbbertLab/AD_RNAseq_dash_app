@@ -38,9 +38,6 @@ def rescale_cds(cds_exon_diff, gene_rescaled_exons):
         .drop(columns=['c_start', 'c_end', 'e_start', 'e_end'], errors='ignore')
     )
 
-    # Debug statement to check the prepared CDS DataFrame
-    print("Prepared CDS DataFrame:\n", cds_prepared.head())
-
     # Step 2: Prepare the Exon DataFrame
     # - Rename 'start' to 'e_start' and 'end' to 'e_end' to avoid column name conflicts
     # - Drop the 'type' column if it exists
@@ -51,17 +48,12 @@ def rescale_cds(cds_exon_diff, gene_rescaled_exons):
         .drop(columns=['type'], errors='ignore')
     )
 
-    # Debug statement to check the prepared Exon DataFrame
-    print("Prepared Exon DataFrame:\n", exons_prepared.head())
-
     # Step 3: Identify common columns for joining
     # - Find columns that are present in both DataFrames to use as keys for the join
 
     common_columns = [col for col in cds_prepared.columns if col in exons_prepared.columns]
     if not common_columns:
         raise ValueError("No common columns to perform join on. Ensure both DataFrames have common keys.")
-
-    print("Common columns for joining:", common_columns)
 
     # Step 4: Perform the left join on the common columns
     # - This aligns the CDS data with the corresponding rescaled exon positions
@@ -73,18 +65,12 @@ def rescale_cds(cds_exon_diff, gene_rescaled_exons):
         on=common_columns
     )
 
-    # Debug statement to check the merged DataFrame
-    print("DataFrame after left join:\n", gene_rescaled_cds.head())
-
     # Step 5: Calculate the adjusted 'start' and 'end' positions for the CDS regions
     # - 'start' is adjusted by adding 'd_start' to 'e_start'
     # - 'end' is adjusted by subtracting 'd_end' from 'e_end'
 
     gene_rescaled_cds['start'] = gene_rescaled_cds['e_start'] + gene_rescaled_cds['d_start']
     gene_rescaled_cds['end'] = gene_rescaled_cds['e_end'] - gene_rescaled_cds['d_end']
-
-    # Debug statement to check the DataFrame after adjusting positions
-    print("DataFrame after adjusting 'start' and 'end':\n", gene_rescaled_cds[['start', 'end']].head())
 
     # Step 6: Drop unnecessary columns used for calculations
     # - Remove 'e_start', 'e_end', 'd_start', 'd_end' as they are no longer needed
@@ -93,8 +79,5 @@ def rescale_cds(cds_exon_diff, gene_rescaled_exons):
         columns=['e_start', 'e_end', 'd_start', 'd_end'],
         errors='ignore'
     )
-
-    # Debug statement to check the final DataFrame before setting 'transcript_id' as categorical
-    print("Final DataFrame before setting 'transcript_id' as categorical:\n", gene_rescaled_cds.head())
 
     return gene_rescaled_cds

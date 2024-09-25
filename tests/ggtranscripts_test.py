@@ -59,6 +59,10 @@ sod1_rescaled_cds = rescale_cds(sod1_cds_diff, sod1_rescaled_exons)
 # Create the plot
 fig = go.Figure()
 
+## Debug
+print(sod1_rescaled_cds.loc[sod1_rescaled_cds["transcript_name"] == "SOD1-202"].head())
+print(sod1_rescaled_exons.loc[sod1_rescaled_exons["transcript_name"] == "SOD1-202"].head())
+
 # Add exons using geom_range, passing the fillcolor directly
 exon_traces = geom_range(
     data=sod1_rescaled_exons,
@@ -75,9 +79,10 @@ cds_traces = geom_range(
     x_start='start',
     x_end='end',
     y='transcript_name',
-    fill=sod1_rescaled_exons['fillcolor'],  
-    height=0.75
+    fill=sod1_rescaled_cds['fillcolor'],
+    height= 0.25
 )
+
 
 # Create introns and add them using geom_intron
 #sod1_introns = to_intron(sod1_exons, group_var="transcript_name")
