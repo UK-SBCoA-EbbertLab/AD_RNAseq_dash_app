@@ -79,5 +79,6 @@ ENV/
 env.bak/
 venv.bak/
 
-# Data
+# Data and Figures
 raw_data/
+figures/
