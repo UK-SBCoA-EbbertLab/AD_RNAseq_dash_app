@@ -449,7 +449,9 @@ def update_gene_level_plot(selected_gene, options, selected_metadata, trendline_
                                 trendline="ols" if trendline_type == "linear" else "lowess",
                                 # Add category_orders to control legend order
                                 category_orders=category_orders_dict if category_orders_dict else None,
-                                template="ggplot2")
+                                template="ggplot2",
+                                custom_data=['sample_id'] if 'sample_id' in pdf.columns else None,
+                                hover_data={'sample_id': True} if 'sample_id' in pdf.columns else None)
 
         # Update marker opacity to make points more transparent
         gene_scatter.update_traces(marker=dict(opacity=0.5))
@@ -1678,7 +1680,9 @@ def update_gene_plot_tab3(count_type, selected_gene, selected_metadata, trendlin
                                trendline="ols" if trendline_type == "linear" else "lowess",
                                # Use the explicit category orders for both facets and legend
                                category_orders=category_orders_dict,
-                               template="ggplot2")
+                               template="ggplot2",
+                               custom_data=['sample_id'] if 'sample_id' in pdf.columns else None,
+                               hover_data={'sample_id': True} if 'sample_id' in pdf.columns else None)
         
         # Update marker opacity to make points more transparent
         scatter_fig.update_traces(marker=dict(opacity=0.5))

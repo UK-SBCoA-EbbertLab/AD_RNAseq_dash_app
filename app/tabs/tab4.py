@@ -783,7 +783,9 @@ def update_gene_level_plot(selected_gene, options, selected_metadata, log_transf
                     line=dict(color='black', width=1),
                     fillcolor=color_map[group],
                     opacity=1,
-                    boxmean=True
+                    boxmean=True,
+                    customdata=group_data[['sample_id']] if 'sample_id' in group_data.columns else None,
+                    hovertemplate='%{x}, %{customdata[0]}<extra></extra>'
                 ))
             else:  # violin plot
                 # Add violin plot
@@ -799,7 +801,9 @@ def update_gene_level_plot(selected_gene, options, selected_metadata, log_transf
                     fillcolor=color_map[group],
                     opacity=1,
                     box_visible=False,
-                    spanmode='hard'
+                    spanmode='hard',
+                    customdata=group_data[['sample_id']] if 'sample_id' in group_data.columns else None,
+                    hovertemplate='%{x}, %{customdata[0]}<extra></extra>'
                 ))
 
         # Update layout for consistency with responsive fonts
